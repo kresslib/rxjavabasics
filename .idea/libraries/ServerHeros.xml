@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="ServerHeros">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/SuperHeroesService/out/artifacts/ServerHeros/ServerHeros.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

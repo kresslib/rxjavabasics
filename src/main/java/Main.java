@@ -1,5 +1,7 @@
 import io.reactivex.*;
 import io.reactivex.disposables.Disposable;
+import io.vertx.core.json.JsonObject;
+import io.vertx.reactivex.ext.web.client.HttpResponse;
 import org.reactivestreams.Subscriber;
 import rxjavaclasses.HotStream;
 
@@ -79,6 +81,11 @@ public class Main {
             // Notify the completion
             subscriber.onComplete();
         });
+        stream.subscribe(
+                i -> System.out.println("Received: " + i),
+                err -> System.out.println("BOOM2"),
+                () -> System.out.println("Completion")
+        );
         stream.subscribe(
                 i -> System.out.println("Received: " + i),
                 err -> System.out.println("BOOM"),
@@ -182,6 +189,5 @@ public class Main {
                 }
         );
 
-        System.out.println("Hello RxJava!");
     }
 }

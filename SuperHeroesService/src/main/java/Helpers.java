@@ -2,6 +2,7 @@
 
 import io.reactivex.Flowable;
 import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.reactivex.core.Vertx;
@@ -10,6 +11,8 @@ import io.vertx.reactivex.core.file.FileSystem;
 import io.vertx.reactivex.ext.web.client.HttpResponse;
 import io.vertx.reactivex.ext.web.client.WebClient;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,42 +33,48 @@ public class Helpers {
         );
     }
 
+    public static WebClient client(int port, String host) {
+        return WebClient.create(vertx,
+                new WebClientOptions().setDefaultPort(port).setDefaultHost(host)
+        );
+    }
+
     public static Observable<String> villains_names() {
         return client()
-            .get("/villains")
-            .rxSend()
-            .map(HttpResponse::bodyAsJsonObject)
-            .map(json -> json.stream().map(Map.Entry::getValue).collect(Collectors.toList()))
-            .flatMapObservable(Observable::fromIterable)
-            .cast(String.class);
+                .get("/villains")
+                .rxSend()
+                .map(HttpResponse::bodyAsJsonObject)
+                .map(json -> json.stream().map(Map.Entry::getValue).collect(Collectors.toList()))
+                .flatMapObservable(Observable::fromIterable)
+                .cast(String.class);
     }
 
     public static Observable<String> heroes_names() {
         return client()
-            .get("/heroes")
-            .rxSend()
-            .map(HttpResponse::bodyAsJsonObject)
-            .map(json -> json.stream().map(Map.Entry::getValue).collect(Collectors.toList()))
-            .flatMapObservable(Observable::fromIterable)
-            .cast(String.class);
+                .get("/heroes")
+                .rxSend()
+                .map(HttpResponse::bodyAsJsonObject)
+                .map(json -> json.stream().map(Map.Entry::getValue).collect(Collectors.toList()))
+                .flatMapObservable(Observable::fromIterable)
+                .cast(String.class);
     }
 
     public static Flowable<Character> heroes() {
         return fs().rxReadFile("src/main/resources/characters.json")
                 .map(Buffer::toJsonArray)
-            .flatMapPublisher(Flowable::fromIterable)
-            .cast(JsonObject.class)
-            .map(j -> j.mapTo(Character.class))
-            .filter(s -> ! s.isVillain());
+                .flatMapPublisher(Flowable::fromIterable)
+                .cast(JsonObject.class)
+                .map(j -> j.mapTo(Character.class))
+                .filter(s -> !s.isVillain());
     }
 
     public static Flowable<Character> villains() {
         return fs().rxReadFile("src/main/resources/characters.json")
-            .map(Buffer::toJsonArray)
-            .flatMapPublisher(Flowable::fromIterable)
-            .cast(JsonObject.class)
-            .map(j -> j.mapTo(Character.class))
-            .filter(Character::isVillain);
+                .map(Buffer::toJsonArray)
+                .flatMapPublisher(Flowable::fromIterable)
+                .cast(JsonObject.class)
+                .map(j -> j.mapTo(Character.class))
+                .filter(Character::isVillain);
     }
 
     public static void sleep(int ms) {
@@ -92,6 +101,30 @@ public class Helpers {
         thread.setName("Scheduler-" + threadCount.getAndIncrement());
         return thread;
     };
+
+    public static Observable<byte[]> getBytes(int port, String host, String URL) {
+        byte[] b = null;
+        return client(port, host)
+                .get(URL).putHeader("imei", "123456")
+                .rxSend()
+                .map(HttpResponse::body)
+                .map(body -> {
+                    if (body.getBytes() == null) {
+                        throw new RuntimeException("What a terrible failure!");
+                    }
+                    return body.getBytes();
+                }).toObservable();
+
+        //return body.getBytes();}).toObservable();
+    }
+
+    public static Observable<Integer> getBytes1(int port, String host, String URL) {
+        return client(port, host)
+                .get(URL).putHeader("emei", "12345")
+                .rxSend()
+                .map(HttpResponse::statusCode)
+                .toObservable();
+    }
 
 
 }
