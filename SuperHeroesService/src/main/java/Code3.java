@@ -93,7 +93,7 @@ public class Code3 {
 
             @Override
             public void onError(Throwable t) {
-                System.out.println("---  Выполнение завершено успешно с ошибкой ---");
+                System.out.println("---  Выполнение завершено, но с ошибкой ---");
                 System.out.println(t);
                 dispose();
             }
