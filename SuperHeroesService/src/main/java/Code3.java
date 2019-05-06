@@ -1,15 +1,13 @@
 import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Action;
 import io.reactivex.observers.DisposableObserver;
-import io.reactivex.schedulers.Schedulers;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-import java.util.concurrent.Callable;
+import java.io.IOException;
+import java.net.SocketTimeoutException;
+import java.util.concurrent.TimeUnit;
 
 
 public class Code3 {
@@ -37,40 +35,51 @@ public class Code3 {
 
     public static void main(String[] args) {
         OkHttpClient client = new OkHttpClient();
-        String url = "http://localhost:8087/untitled/resources/infoenergo.getnewcommands_test"; // 404
-        String url1 = "http://localhost:8087/commandserv/resources/infoenergo.getnewcommands"; // 200
-        String url2 = "http://square.github.io/okhttp/";
+        OkHttpClient.Builder builder = client.newBuilder();
+        builder.connectTimeout(500, TimeUnit.MILLISECONDS)
+                .readTimeout(2000, TimeUnit.MILLISECONDS);
+        OkHttpClient client2 = builder.build();
+
+        String url404 = "http://localhost:8087/untitled/resources/infoenergo.getnewcommands_test"; // 404
+        String url200 = "http://localhost:8087/commandserv/resources/infoenergo.getnewcommands"; // 200
+        String url2 = "http://square.github.io/okhttpjkhjhkjhkj/";
 
 
-        Request request1 = new Request.Builder().url(url).build();
+        Request request1 = new Request.Builder().url(url200).build();
 
 
-        Observable<Response> resp2 = Observable.create(new ObservableOnSubscribe<Response>() {
-            @Override
-            public void subscribe(ObservableEmitter<Response> e) throws Exception {
+        Observable<Response> resp = Observable.create(e -> {
+            long millisStart = System.currentTimeMillis();
 
-                Response resp3 = client.newCall(request1).execute();
+            try (Response resp3 = client2.newCall(request1).execute()) {
                 if (resp3.code() == 200) {
-                    e.onNext(resp3);
-                    e.onComplete();
+                    if (resp3.body() != null) {
+                        e.onNext(resp3);
+                        e.onComplete();
+                    } else {
+                        e.onError(new Exception("Пустой массив байтов"));
+                    }
                 } else {
                     e.onError(new Exception("Code not 200"));
                 }
+            } catch (SocketTimeoutException ex) {
+                long millisFinish = System.currentTimeMillis();
+                long timeCodeExecute = (millisFinish - millisStart) / 1000;
+                e.onError(new Exception("Вышел тайм-аут соединения спустя " + timeCodeExecute + " сек."));
             }
         });
 
 
+        //Observable<String> s_resp = resp.map(response -> response.body().toString());
 
-        Observable<String> s_resp = resp2.map(response -> response.body().toString());
-
-        Disposable d = s_resp.subscribeWith(new DisposableObserver<String>() {
+        Disposable d = resp.subscribeWith(new DisposableObserver<Response>() {
             @Override
             public void onStart() {
                 System.out.println("Started");
             }
 
             @Override
-            public void onNext(String s) {
+            public void onNext(Response s) {
 
             }
 
