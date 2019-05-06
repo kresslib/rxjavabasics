@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/SuperHeroesService/SuperHeroesService.iml" filepath="$PROJECT_DIR$/SuperHeroesService/SuperHeroesService.iml" />
       <module fileurl="file://$PROJECT_DIR$/rxjavabasics.iml" filepath="$PROJECT_DIR$/rxjavabasics.iml" />
     </modules>
   </component>
